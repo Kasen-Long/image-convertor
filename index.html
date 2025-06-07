@@ -1,0 +1,448 @@
+<!-- index.html (主界面) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片格式批量转换工具</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <!-- 配置 Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .card-shadow {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 font-inter text-gray-800 min-h-screen flex flex-col">
+  <!-- 顶部导航 -->
+  <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-picture-o text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-dark">图片格式批量转换工具</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button id="saveConfigBtn" class="text-gray-600 hover:text-primary transition-colors">
+          <i class="fa fa-save mr-1"></i> 保存配置
+        </button>
+        <button id="loadConfigBtn" class="text-gray-600 hover:text-primary transition-colors">
+          <i class="fa fa-folder-open mr-1"></i> 加载配置
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <!-- 源文件夹选择 -->
+    <div class="bg-white rounded-lg p-5 mb-6 card-shadow">
+      <h2 class="text-lg font-semibold mb-3 flex items-center">
+        <i class="fa fa-folder text-primary mr-2"></i> 源文件夹
+      </h2>
+      <div class="flex items-center">
+        <input type="text" id="sourceDir"
+          class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+          placeholder="选择包含图片的文件夹">
+        <button id="browseSourceBtn"
+          class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r-lg transition-colors">
+          <i class="fa fa-search mr-1"></i> 浏览
+        </button>
+      </div>
+    </div>
+
+    <!-- 文件映射规则 -->
+    <div class="bg-white rounded-lg p-5 mb-6 card-shadow">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold flex items-center">
+          <i class="fa fa-exchange text-primary mr-2"></i> 文件映射规则
+        </h2>
+        <button id="addMappingBtn"
+          class="bg-secondary hover:bg-secondary/90 text-white px-3 py-1 rounded transition-colors text-sm flex items-center">
+          <i class="fa fa-plus mr-1"></i> 添加规则
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="border border-gray-200 px-4 py-2 text-left">源文件模式</th>
+              <th class="border border-gray-200 px-4 py-2 text-left">目标文件名</th>
+              <th class="border border-gray-200 px-4 py-2 text-center w-20">操作</th>
+            </tr>
+          </thead>
+          <tbody id="mappingTable">
+            <tr class="mapping-row">
+              <td class="border border-gray-200 px-4 py-2">
+                <input type="text"
+                  class="mapping-source w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value="00001.jpg">
+              </td>
+              <td class="border border-gray-200 px-4 py-2">
+                <input type="text"
+                  class="mapping-target w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value="Cover.tif">
+              </td>
+              <td class="border border-gray-200 px-4 py-2 text-center">
+                <button class="delete-mapping text-danger hover:text-danger/80 transition-colors">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3 text-sm text-gray-500">
+        <p><i class="fa fa-info-circle mr-1"></i> 支持通配符（如 <code class="bg-gray-100 px-1 py-0.5 rounded">*.jpg</code>）
+        </p>
+        <p><i class="fa fa-lightbulb-o mr-1"></i> 若目标文件名包含 <code
+            class="bg-gray-100 px-1 py-0.5 rounded">*</code>，会替换为源文件匹配部分（如 <code
+            class="bg-gray-100 px-1 py-0.5 rounded">img_*.jpg → photo_*.tif</code>）</p>
+      </div>
+    </div>
+
+    <!-- 输出文件夹选择 -->
+    <div class="bg-white rounded-lg p-5 mb-6 card-shadow">
+      <h2 class="text-lg font-semibold mb-3 flex items-center">
+        <i class="fa fa-floppy-o text-primary mr-2"></i> 输出文件夹
+      </h2>
+      <div class="flex items-center">
+        <input type="text" id="outputDir"
+          class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+          placeholder="选择输出文件夹（可选，默认为源文件夹）">
+        <button id="browseOutputBtn"
+          class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r-lg transition-colors">
+          <i class="fa fa-search mr-1"></i> 浏览
+        </button>
+      </div>
+    </div>
+
+    <!-- 转换按钮 -->
+    <div class="flex justify-center mb-6">
+      <button id="convertBtn"
+        class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg transition-colors flex items-center text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+        <i class="fa fa-refresh mr-2"></i> 开始转换
+      </button>
+    </div>
+
+    <!-- 进度和日志 -->
+    <div class="bg-white rounded-lg p-5 card-shadow">
+      <h2 class="text-lg font-semibold mb-3 flex items-center">
+        <i class="fa fa-list-alt text-primary mr-2"></i> 转换进度
+      </h2>
+
+      <div class="mb-3">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-medium">总体进度:</span>
+          <span id="progressText" class="text-sm text-gray-600">0/0</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div id="progressBar" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="h-48 bg-gray-50 rounded-lg overflow-y-auto scrollbar-hide p-3 border border-gray-200"
+        id="logContainer">
+        <p class="text-gray-500">等待开始转换...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部状态栏 -->
+  <footer class="bg-white border-t border-gray-200 py-3">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+      <p>图片格式批量转换工具 | 版本 1.0.0</p>
+    </div>
+  </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 获取DOM元素
+      const sourceDirInput = document.getElementById('sourceDir');
+      const outputDirInput = document.getElementById('outputDir');
+      const browseSourceBtn = document.getElementById('browseSourceBtn');
+      const browseOutputBtn = document.getElementById('browseOutputBtn');
+      const addMappingBtn = document.getElementById('addMappingBtn');
+      const mappingTable = document.getElementById('mappingTable');
+      const convertBtn = document.getElementById('convertBtn');
+      const logContainer = document.getElementById('logContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const saveConfigBtn = document.getElementById('saveConfigBtn');
+      const loadConfigBtn = document.getElementById('loadConfigBtn');
+
+      // 浏览源文件夹
+      browseSourceBtn.addEventListener('click', async () => {
+        const { canceled, filePaths } = await window.electronAPI.showOpenDialog({
+          properties: ['openDirectory']
+        });
+
+        if (!canceled) {
+          sourceDirInput.value = filePaths[0];
+          appendLog(`已选择源文件夹: ${filePaths[0]}`);
+        }
+      });
+
+      // 浏览输出文件夹
+      browseOutputBtn.addEventListener('click', async () => {
+        const { canceled, filePaths } = await window.electronAPI.showOpenDialog({
+          properties: ['openDirectory']
+        });
+
+        if (!canceled) {
+          outputDirInput.value = filePaths[0];
+          appendLog(`已选择输出文件夹: ${filePaths[0]}`);
+        }
+      });
+
+      // 添加映射规则
+      addMappingBtn.addEventListener('click', () => {
+        const newRow = document.createElement('tr');
+        newRow.className = 'mapping-row';
+        newRow.innerHTML = `
+            <td class="border border-gray-200 px-4 py-2">
+              <input type="text" class="mapping-source w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="例如: *.jpg">
+            </td>
+            <td class="border border-gray-200 px-4 py-2">
+              <input type="text" class="mapping-target w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="例如: Cover.tif">
+            </td>
+            <td class="border border-gray-200 px-4 py-2 text-center">
+              <button class="delete-mapping text-danger hover:text-danger/80 transition-colors">
+                <i class="fa fa-trash"></i>
+              </button>
+            </td>
+          `;
+
+        mappingTable.appendChild(newRow);
+
+        // 为新添加的删除按钮绑定事件
+        newRow.querySelector('.delete-mapping').addEventListener('click', () => {
+          newRow.remove();
+        });
+      });
+
+      // 删除映射规则（动态绑定）
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-mapping') || e.target.parentElement.classList.contains('delete-mapping')) {
+          const btn = e.target.classList.contains('delete-mapping') ? e.target : e.target.parentElement;
+          const row = btn.closest('.mapping-row');
+          row.remove();
+        }
+      });
+
+      // 开始转换
+      convertBtn.addEventListener('click', async () => {
+        const sourceDir = sourceDirInput.value.trim();
+        let outputDir = outputDirInput.value.trim();
+
+        // 验证输入
+        if (!sourceDir) {
+          alert('请选择源文件夹');
+          return;
+        }
+
+        // 获取所有映射规则
+        const mappingRows = document.querySelectorAll('.mapping-row');
+        const mappings = Array.from(mappingRows).map(row => {
+          const source = row.querySelector('.mapping-source').value.trim();
+          const target = row.querySelector('.mapping-target').value.trim();
+
+          if (!source || !target) {
+            alert('请确保所有映射规则都有源文件模式和目标文件名');
+            throw new Error('无效的映射规则');
+          }
+
+          // 确保目标文件是 .tif 格式
+          const targetExt = target.toLowerCase().endsWith('.tif') ? target : `${target}.tif`;
+
+          return { sourcePattern: source, targetName: targetExt };
+        });
+
+        // 如果未指定输出目录，使用源目录
+        if (!outputDir) {
+          if (!confirm('未指定输出目录，将在原文件夹中替换文件。是否继续?')) {
+            return;
+          }
+          outputDir = sourceDir;
+        }
+
+        // 清空日志和进度
+        logContainer.innerHTML = '<p class="text-gray-500">开始转换...</p>';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0/0';
+
+        // 禁用按钮
+        convertBtn.disabled = true;
+        convertBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 转换中...';
+
+        try {
+          // 设置进度监听器
+          window.electronAPI.onConversionProgress((_, { file, status, error, results }) => {
+            const { total, success, errors } = results;
+            const percent = total > 0 ? Math.round((success + errors.length) / total * 100) : 0;
+
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${success + errors.length}/${total}`;
+
+            if (status === 'success') {
+              appendLog(`✅ 成功转换: ${file}`);
+            } else if (status === 'error') {
+              appendLog(`❌ 转换失败 (${error}): ${file}`);
+            }
+          });
+
+          // 执行转换
+          const results = await window.electronAPI.convertImages({
+            sourceDir,
+            outputDir,
+            mappings
+          });
+
+          // 显示结果
+          appendLog(`\n转换完成!`);
+          appendLog(`成功: ${results.success}`);
+          appendLog(`失败: ${results.errors.length}`);
+          appendLog(`总计: ${results.total}`);
+
+          if (results.errors.length > 0) {
+            appendLog(`\n失败的文件: ${results.errors.length}`);
+            results.errors.forEach(err => {
+              appendLog(`- ${err.file}: ${err.error}`);
+            });
+          }
+
+          alert(`转换完成!\n成功: ${results.success}\n失败: ${results.errors.length}\n总计: ${results.total}`);
+        } catch (err) {
+          appendLog(`致命错误: ${err.message}`);
+          alert(`转换过程中出错: ${err.message}`);
+        } finally {
+          // 启用按钮
+          convertBtn.disabled = false;
+          convertBtn.innerHTML = '<i class="fa fa-refresh mr-2"></i> 开始转换';
+
+          // 移除进度监听器
+          window.electronAPI.onConversionProgress(() => { });
+        }
+      });
+
+      // 保存配置
+      saveConfigBtn.addEventListener('click', async () => {
+        const config = {
+          sourceDir: sourceDirInput.value,
+          outputDir: outputDirInput.value,
+          mappings: Array.from(document.querySelectorAll('.mapping-row')).map(row => ({
+            source: row.querySelector('.mapping-source').value,
+            target: row.querySelector('.mapping-target').value
+          }))
+        };
+
+        const { canceled, filePath } = await window.electronAPI.showSaveDialog({
+          defaultPath: 'image_converter_config.json',
+          filters: [{ name: 'JSON Files', extensions: ['json'] }]
+        });
+
+        if (!canceled && filePath) {
+          try {
+            await window.electronAPI.saveConfig(filePath, config);
+            appendLog(`配置已保存到: ${filePath}`);
+            alert('配置保存成功!');
+          } catch (err) {
+            appendLog(`保存配置失败: ${err.message}`);
+            alert(`保存配置失败: ${err.message}`);
+          }
+        }
+      });
+
+      // 加载配置
+      loadConfigBtn.addEventListener('click', async () => {
+        const { canceled, filePaths } = await window.electronAPI.showOpenDialog({
+          properties: ['openFile'],
+          filters: [{ name: 'JSON Files', extensions: ['json'] }]
+        });
+
+        if (!canceled && filePaths.length > 0) {
+          try {
+            const config = await window.electronAPI.loadConfig(filePaths[0]);
+
+            // 清空现有映射
+            mappingTable.innerHTML = '';
+
+            // 应用配置
+            sourceDirInput.value = config.sourceDir || '';
+            outputDirInput.value = config.outputDir || '';
+
+            // 添加映射规则
+            if (config.mappings && Array.isArray(config.mappings)) {
+              config.mappings.forEach(mapping => {
+                const newRow = document.createElement('tr');
+                newRow.className = 'mapping-row';
+                newRow.innerHTML = `
+                    <td class="border border-gray-200 px-4 py-2">
+                      <input type="text" class="mapping-source w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" value="${mapping.source || ''}">
+                    </td>
+                    <td class="border border-gray-200 px-4 py-2">
+                      <input type="text" class="mapping-target w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50" value="${mapping.target || ''}">
+                    </td>
+                    <td class="border border-gray-200 px-4 py-2 text-center">
+                      <button class="delete-mapping text-danger hover:text-danger/80 transition-colors">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </td>
+                  `;
+
+                mappingTable.appendChild(newRow);
+              });
+            }
+
+            appendLog(`配置已从 ${filePaths[0]} 加载`);
+            alert('配置加载成功!');
+          } catch (err) {
+            appendLog(`加载配置失败: ${err.message}`);
+            alert(`加载配置失败: ${err.message}`);
+          }
+        }
+      });
+
+      // 辅助函数：添加日志
+      function appendLog(message) {
+        const logEntry = document.createElement('p');
+        logEntry.className = 'mb-1';
+        logEntry.textContent = message;
+        logContainer.appendChild(logEntry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+      }
+    });
+  </script>
+</body>
+
+</html>

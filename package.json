@@ -1,0 +1,35 @@
+{
+  "name": "image-converter",
+  "version": "1.0.0",
+  "description": "图片格式转换",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "keywords": [],
+  "author": "kasen",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^25.9.8",
+    "electron-builder": "^26.0.12",
+    "electron-builder-squirrel-windows": "26.0.12"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2",
+    "glob": "^10.4.5",
+    "sharp": "^0.32.6"
+  },
+  "build": {
+    "appId": "com.kasen.imageconverter",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": "portable"
+    },
+    "linux": {
+      "target": "deb"
+    }
+  }
+}
