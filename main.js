@@ -59,7 +59,7 @@ ipcMain.handle('load-config', async (event, filePath) => {
 
 // 处理文件转换请求
 ipcMain.handle('convert-images', async (event, options) => {
-    const { sourceDir, outputDir, mappings } = options;
+    const { sourceDir, outputDir, mappings, deleteSource } = options;
     const results = { total: 0, success: 0, errors: [] };
 
     try {
@@ -84,6 +84,11 @@ ipcMain.handle('convert-images', async (event, options) => {
                 try {
                     // 使用 sharp 转换图片格式
                     await sharp(file).toFile(targetPath);
+                    // 如果需要删除源文件
+                    if (deleteSource) {
+                        await fs.unlink(file); // 删除源文件
+                        appendLogToMain(`🗑️ 删除源文件: ${file}`); // 可选：添加日志
+                    }
                     results.success++;
 
                     // 发送进度更新
@@ -112,3 +117,8 @@ ipcMain.handle('convert-images', async (event, options) => {
         throw err;
     }
 });
+
+// 辅助函数：向渲染进程发送日志（可选）
+function appendLogToMain(message) {
+    mainWindow.webContents.send('append-log', message);
+}

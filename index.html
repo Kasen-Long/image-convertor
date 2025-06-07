@@ -148,6 +148,16 @@
       </div>
     </div>
 
+    <!-- 删除源文件复选框 -->
+    <div class="bg-white rounded-lg p-5 mb-6 card-shadow">
+      <div class="flex items-center">
+        <input type="checkbox" id="deleteSource" class="mr-2">
+        <label for="deleteSource" class="text-gray-700 font-medium">
+          转换后删除源文件
+        </label>
+      </div>
+    </div>
+
     <!-- 转换按钮 -->
     <div class="flex justify-center mb-6">
       <button id="convertBtn"
@@ -262,6 +272,7 @@
 
       // 开始转换
       convertBtn.addEventListener('click', async () => {
+        const deleteSource = document.getElementById('deleteSource').checked; // 获取复选框状态
         const sourceDir = sourceDirInput.value.trim();
         let outputDir = outputDirInput.value.trim();
 
@@ -325,7 +336,8 @@
           const results = await window.electronAPI.convertImages({
             sourceDir,
             outputDir,
-            mappings
+            mappings,
+            deleteSource
           });
 
           // 显示结果
