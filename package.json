@@ -1,37 +1,30 @@
 {
-  "name": "image-converter",
+  "name": "imager",
   "version": "1.0.0",
-  "description": "图片格式转换",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
-    "build": "electron-builder --win",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
-  "keywords": [],
   "author": "kasen",
   "license": "ISC",
+  "description": "image converter",
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
-    "electron": "^25.9.8",
-    "electron-builder-squirrel-windows": "26.0.12"
+    "@electron-forge/maker-deb": "^7.8.1",
+    "@electron-forge/maker-rpm": "^7.8.1",
+    "@electron-forge/maker-squirrel": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
+    "@electron-forge/plugin-fuses": "^7.8.1",
+    "@electron/fuses": "^1.8.0",
+    "electron": "^36.4.0"
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",
-    "glob": "^10.4.5",
-    "sharp": "^0.32.6"
-  },
-  "build": {
-    "appId": "com.kasen.imageconverter",
-    "mac": {
-      "category": "public.app-category.utilities"
-    },
-    "win": {
-      "target": "portable"
-    },
-    "linux": {
-      "target": "deb"
-    }
+    "electron-squirrel-startup": "^1.0.1",
+    "glob": "^11.0.2",
+    "sharp": "^0.34.2"
   }
 }
