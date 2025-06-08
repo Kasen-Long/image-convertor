@@ -59,7 +59,7 @@ ipcMain.handle('load-config', async (event, filePath) => {
 
 // 处理文件转换请求
 ipcMain.handle('convert-images', async (event, options) => {
-    const { sourceDir, outputDir, mappings, deleteSource } = options;
+    const { sourceDir, outputDir, mappings, deleteSource, modifyNameOnly } = options;
     const results = { total: 0, success: 0, errors: [] };
 
     try {
@@ -82,8 +82,17 @@ ipcMain.handle('convert-images', async (event, options) => {
                 await fs.mkdir(outputPath, { recursive: true });
 
                 try {
-                    // 使用 sharp 转换图片格式
-                    await sharp(file).toFile(targetPath);
+                    // 如果源文件和目标文件后缀相同，则复制一份
+                    const sourceExt = path.extname(file).toLowerCase();
+                    const targetExt = path.extname(targetName).toLowerCase();
+                    if (sourceExt === targetExt || modifyNameOnly) {
+                        const newFilePath = path.join(outputPath, targetName);
+                        await fs.copyFile(file, newFilePath);
+                        appendLogToMain(`📝 复制文件: ${file} -> ${newFilePath}`);
+                    } else {
+                        // 使用 sharp 转换图片格式
+                        await sharp(file).toFile(targetPath);
+                    }
                     // 如果需要删除源文件
                     if (deleteSource) {
                         await fs.unlink(file); // 删除源文件

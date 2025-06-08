@@ -128,7 +128,7 @@
         </p>
         <p><i class="fa fa-lightbulb-o mr-1"></i> 若目标文件名包含 <code
             class="bg-gray-100 px-1 py-0.5 rounded">*</code>，会替换为源文件匹配部分（如 <code
-            class="bg-gray-100 px-1 py-0.5 rounded">img_*.jpg → photo_*.tif</code>）</p>
+            class="bg-gray-100 px-1 py-0.5 rounded">img_*.jpg → photo_*.tiff</code>）</p>
       </div>
     </div>
 
@@ -154,6 +154,16 @@
         <input type="checkbox" id="deleteSource" class="mr-2">
         <label for="deleteSource" class="text-gray-700 font-medium">
           转换后删除源文件
+        </label>
+      </div>
+    </div>
+
+    <!-- 不转换格式仅修改文件名复选框 -->
+    <div class="bg-white rounded-lg p-5 mb-6 card-shadow">
+      <div class="flex items-center">
+        <input type="checkbox" id="modifyNameOnly" class="mr-2">
+        <label for="modifyNameOnly" class="text-gray-700 font-medium">
+          不转换格式仅修改文件名
         </label>
       </div>
     </div>
@@ -273,6 +283,7 @@
       // 开始转换
       convertBtn.addEventListener('click', async () => {
         const deleteSource = document.getElementById('deleteSource').checked; // 获取复选框状态
+        const modifyNameOnly = document.getElementById('modifyNameOnly').checked; // 获取复选框状态
         const sourceDir = sourceDirInput.value.trim();
         let outputDir = outputDirInput.value.trim();
 
@@ -294,9 +305,9 @@
           }
 
           // 确保目标文件是 .tif 格式
-          const targetExt = target.toLowerCase().endsWith('.tif') ? target : `${target}.tif`;
+          // const targetExt = target.toLowerCase().endsWith('.tif') || target.toLowerCase().endsWith('.tiff') ? target : `${target}.tiff`;
 
-          return { sourcePattern: source, targetName: targetExt };
+          return { sourcePattern: source, targetName: target };
         });
 
         // 如果未指定输出目录，使用源目录
@@ -337,7 +348,8 @@
             sourceDir,
             outputDir,
             mappings,
-            deleteSource
+            deleteSource,
+            modifyNameOnly,
           });
 
           // 显示结果
